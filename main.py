@@ -6,10 +6,13 @@ from database_utils import engine, get_db, Base
 from models import User, CheckIn
 from schemas import UserCreate, UserResponse, CheckInRequest, CheckInResponse
 from motivational import get_motivational_message
+import os
+from fastapi.middleware.cors import CORSMiddleware
 
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
+# main.py - Add environment handling
 
 app = FastAPI(
     title="Daily Streak API",
@@ -17,11 +20,22 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Add CORS for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure this properly for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/")
-def read_root():
-    """ Root endpoint to check if the API is running."""
-    return {"message": "Daily Streak API is running!"}
+# Database URL for production
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database.db")
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "Daily Streak API is running!"}
 
 
 @app.get("/users/", response_model=List[UserResponse])
@@ -187,3 +201,9 @@ def calculate_milestone_bonus(streak: int) -> int:
     elif streak % 7 == 0:
         return 50
     return 0
+
+
+app = app
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
