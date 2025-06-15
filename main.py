@@ -33,7 +33,7 @@ app.add_middleware(
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database.db")
 
 
-@app.get("/health")
+@app.get("/")
 async def health_check():
     return {"status": "healthy", "message": "Daily Streak API is running!"}
 
